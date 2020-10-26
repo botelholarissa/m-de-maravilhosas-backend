@@ -1,39 +1,31 @@
-const model = require('../models/maravilhosas-models')
+const model = require('../models/maravilhosas-models');
 
-//Nomes dos métodos para implementação:
-
-//getMaravilhosas
 const getMaravilhosas = (request, response) => {
-    response.status(200).send(model.selectAllData())
+    response.status(200).send(model.selectAllData());
 }
-//getMaravilhosaById
 
 const getMaravilhosaById = (request, response) => {
-    const id = request.params.id
-    const dadoEncontrado = model.selectDataById(id)
+    const id = request.params.id;
+    const dadoEncontrado = model.selectDataById(id);
 
     if(dadoEncontrado) {
-        response.status(200).send(dadoEncontrado)
+        response.status(200).send(dadoEncontrado);
     } else {
-        response.status(404).send({message: 'Não localizei a maravilhosa.'})
+        response.status(404).send({message: 'Não localizei a maravilhosa.'});
     }
 
-} 
-
-//addMaravilhosa 
+}
 
 const addMaravilhosa = (request, response) => {
     let { name, photo, subtitle, about, phrase, history, addedBy } = request.body;
 
-    const getId = function(item) {
+    const getId = item => {
         if (item.length > 0 ) {
-            return item[item.length -1].id +1
+            return item[item.length -1].id +1;
         } else {
-            return 1
+            return 1;
         }
     }
-
-
 
     let newPost = {
         id: getId(model.selectAllData()),
@@ -46,16 +38,46 @@ const addMaravilhosa = (request, response) => {
         addedBy: addedBy
     } 
 
-console.log(newPost)
+    const {error} = model.insertData(newPost);
+
+    if(error === null) {
+        response.status(201).json("Maravilhosa adicionada com sucesso");
+    } else {
+        response.status(400).json({"message": error.message});
+    }
+
 }
 
-//updateMaravilhosa 
+const updateMaravilhosa = (request, response) =>  {
+    const {error, data} = model.updateData(request.params.id, request.body);
+
+    if(error === null){
+        response.status(201).send(data);
+    } else {
+        //response.status(400).json({"message": error.message}) Feito assim não retorna mensagem de erro
+        response.status(400).json({message: "Id não encontrado, impossível atualizar"})
+    }
+
+}
 
 //deleteMaravilhosa
+
+const deleteMaravilhosa = (request, response) => {
+    const {error} = model.deleteData(request.params.id);
+
+    if(error === null) {
+        response.status(204).send("Maravilhosa removida!");
+    } else {
+        response.status(404).json({"message:": error.message});
+    }
+}
+
 
 
 module.exports = {
     getMaravilhosas, 
     getMaravilhosaById,
-    addMaravilhosa
+    addMaravilhosa,
+    updateMaravilhosa,
+    deleteMaravilhosa
 }
